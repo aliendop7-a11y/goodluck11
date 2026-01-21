@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Good Luck #11!</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --team-green: #004d40;
+            --team-yellow: #ffc107;
+            --ball-white: #fdfdfd;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body, html { 
+            margin: 0; padding: 0; width: 100%; height: 100%; 
+            overflow: hidden; font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: #000; color: white;
+            display: flex; justify-content: center; align-items: center;
+        }
+
+        .app-container {
+            width: 100%; max-width: 430px; height: 100%;
+            position: relative; background: #1a1a1a;
+            overflow: hidden; box-shadow: 0 0 50px rgba(0,0,0,1);
+        }
+
+        .screen {
+            display: none; width: 100%; height: 100%;
+            position: absolute; flex-direction: column;
+            align-items: center; justify-content: center; text-align: center;
+        }
+
+        .active { display: flex; animation: fadeIn 0.8s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* --- LOCKER SCENE --- */
+        #locker-scene { background: #111; }
+        .locker-wrapper { position: relative; width: 240px; height: 420px; perspective: 1200px; }
+        
+        .locker-door {
+            width: 100%; height: 100%;
+            background: linear-gradient(135deg, #444 0%, #222 100%);
+            border: 3px solid #1a1a1a; border-radius: 4px;
+            position: absolute; top: 0; left: 0;
+            transition: transform 2.5s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: left; z-index: 2;
+            display: flex; flex-direction: column; align-items: center; 
+            box-shadow: 15px 0 30px rgba(0,0,0,0.7);
+            cursor: pointer;
+        }
+        .locker-door.open { transform: rotateY(-115deg); }
+        .door-number {
+            background: var(--team-yellow); color: #000;
+            padding: 8px 20px; font-weight: 900; font-size: 2.2rem;
+            border-radius: 4px; margin-top: 40px;
+        }
+
+        .locker-interior {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #0a0a0a; z-index: 1; display: flex; flex-direction: column; 
+            align-items: center; border-radius: 4px; padding-top: 30px;
+        }
+
+        .jersey-container {
+            width: 160px; height: 200px;
+            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.9));
+            animation: hang 4s ease-in-out infinite;
+        }
+        @keyframes hang { 0%, 100% { transform: rotate(-1.5deg); } 50% { transform: rotate(1.5deg); } }
+
+        .sticky-note {
+            background: #fff9c4; color: #222;
+            padding: 15px; width: 150px; 
+            margin-top: 25px; transform: rotate(-3deg);
+            box-shadow: 4px 4px 10px rgba(0,0,0,0.4);
+            font-family: 'Marker Felt', 'Comic Sans MS', cursive;
+            font-size: 0.95rem;
+        }
+
+        /* --- VOLLEYBALL --- */
+        #ball {
+            width: 75px; height: 75px; 
+            background: var(--ball-white);
+            border-radius: 50%; position: absolute; bottom: 10%;
+            left: 50%; transform: translateX(-50%);
+            box-shadow: inset -4px -4px 12px rgba(0,0,0,0.1), 0 10px 25px rgba(0,0,0,0.5);
+            cursor: grab; overflow: hidden;
+            z-index: 5;
+        }
+        #ball::after {
+            content: ""; position: absolute; width: 100%; height: 100%;
+            background: 
+                radial-gradient(circle at 50% 120%, transparent 60%, rgba(0,0,0,0.08) 61%, rgba(0,0,0,0.08) 63%, transparent 64%),
+                radial-gradient(circle at 50% -20%, transparent 60%, rgba(0,0,0,0.08) 61%, rgba(0,0,0,0.08) 63%, transparent 64%),
+                radial-gradient(circle at 120% 50%, transparent 60%, rgba(0,0,0,0.08) 61%, rgba(0,0,0,0.08) 63%, transparent 64%);
+        }
+
+        /* --- GAME UI --- */
+        #game-scene { background: radial-gradient(circle at center, #1e3c72, #000); }
+        .stats { position: absolute; top: 30px; width: 85%; display: flex; justify-content: space-between; font-weight: 800; font-size: 1.1rem; }
+        #hoop { 
+            width: 120px; height: 120px; border: 8px solid #ff4500; border-radius: 50%; 
+            position: absolute; top: 18%; left: 50%; transform: translateX(-50%);
+            z-index: 1;
+        }
+
+        button {
+            padding: 18px 50px; font-size: 1.2rem; border-radius: 50px;
+            border: none; background: var(--team-yellow); cursor: pointer; font-weight: 900;
+            margin-top: 20px;
+        }
+
+        .secondary-btn {
+            background: transparent; border: 2px solid var(--team-yellow);
+            color: var(--team-yellow); margin-top: 15px; font-size: 1rem;
+            padding: 12px 30px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <div id="locker-scene" class="screen active">
+        <div class="locker-wrapper">
+            <div class="locker-door" id="door" onclick="openLocker()">
+                <div class="door-number">11</div>
+            </div>
+            <div class="locker-interior">
+                <div class="jersey-container">
+                    <svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M25,5 Q50,15 75,5 L85,25 L80,115 L20,115 L15,25 Z" fill="var(--team-green)" />
+                        <path d="M15,25 Q25,35 25,60" fill="none" stroke="var(--team-yellow)" stroke-width="3" />
+                        <path d="M85,25 Q75,35 75,60" fill="none" stroke="var(--team-yellow)" stroke-width="3" />
+                        <path d="M35,10 Q50,22 65,10" fill="none" stroke="var(--team-yellow)" stroke-width="4" />
+                        <text x="50" y="75" fill="var(--team-yellow)" font-size="32" text-anchor="middle" font-weight="900">11</text>
+                    </svg>
+                </div>
+                <div class="sticky-note">"I can do all things through Christ who strengthens me."  -Phil 4:13</div>
+            </div>
+        </div>
+        <p id="instr" style="margin-top: 30px; color: #666; font-weight: 600;">TAP TO OPEN LOCKER</p>
+    </div>
+
+    <div id="start-scene" class="screen">
+        <h1 style="font-size: 2.5rem; margin-bottom: 5px;">Ready, #11?</h1>
+        <p style="margin-bottom: 35px; opacity: 0.8; padding: 0 40px; line-height: 1.4;">Swipe the ball toward the hoop to score!</p>
+        <button onclick="startGame()">START TO PLAY</button>
+    </div>
+
+    <div id="game-scene" class="screen">
+        <div class="stats">
+            <div>SCORE: <span id="score" style="color:var(--team-yellow)">0</span>/3</div>
+            <div>LIVES: <span id="lives" style="color:#ff5252">5</span></div>
+        </div>
+        <div id="hoop"></div>
+        <div id="ball"></div>
+    </div>
+
+    <div id="final-scene" class="screen" style="padding: 30px;">
+        <div style="background: rgba(255,255,255,0.05); padding: 30px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);">
+            <h2 style="color: var(--team-yellow); font-size: 2rem; margin-top: 0;">Uh made it!</h2>
+            <p style="line-height: 1.7; font-size: 1.15rem;">heiii achu 🥰. Play your heart out, stay focused, and remember how strong you are. I'm so proud of you! Mwah 💋</p>
+            <p style="font-size: 1rem; margin-bottom: 10px;"> - verified </p>
+            <button class="secondary-btn" onclick="resetGameForReplay()">Play Again</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let score = 0; let lives = 5; let gameActive = false;
+    const ball = document.getElementById('ball');
+    const hoop = document.getElementById('hoop');
+    let isDragging = false;
+    let startX, startY, startTime;
+
+    function openLocker() {
+        document.getElementById('door').classList.add('open');
+        document.getElementById('instr').style.opacity = '0';
+        setTimeout(() => showScreen('start-scene'), 7500);
+    }
+
+    function showScreen(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
+
+    function startGame() {
+        showScreen('game-scene');
+        gameActive = true;
+        resetBall();
+    }
+
+    function resetBall() {
+        ball.style.transition = 'none';
+        ball.style.bottom = '10%';
+        ball.style.left = '50%';
+        ball.style.transform = 'translateX(-50%) scale(1)';
+        ball.style.opacity = '1';
+        isDragging = false;
+    }
+
+    function handleStart(x, y) {
+        if (!gameActive || isDragging) return;
+        isDragging = true;
+        startX = x; startY = y;
+        startTime = Date.now();
+    }
+
+    function handleEnd(x, y) {
+        if (!isDragging) return;
+        isDragging = false;
+        const duration = Date.now() - startTime;
+        const deltaX = x - startX;
+        const deltaY = startY - y;
+        if (deltaY > 30 && duration < 800) { // More sensitive to swipes
+            shootBall(deltaX, deltaY);
+        }
+    }
+
+    function shootBall(distX, distY) {
+        const travelX = distX * 0.6;
+        const travelY = Math.max(distY * 1.5, 350); // Ensuring it reaches the top
+        ball.style.transition = 'all 0.8s cubic-bezier(0.165, 0.84, 0.44, 1)';
+        ball.style.transform = `translate(calc(-50% + ${travelX}px), -${travelY}px) scale(0.45)`;
+        setTimeout(checkCollision, 650);
+    }
+
+    ball.addEventListener('touchstart', e => handleStart(e.touches[0].clientX, e.touches[0].clientY));
+    window.addEventListener('touchend', e => handleEnd(e.changedTouches[0].clientX, e.changedTouches[0].clientY));
+    ball.addEventListener('mousedown', e => handleStart(e.clientX, e.clientY));
+    window.addEventListener('mouseup', e => handleEnd(e.clientX, e.clientY));
+
+    function checkCollision() {
+        const b = ball.getBoundingClientRect();
+        const h = hoop.getBoundingClientRect();
+        const ballCenter = b.left + b.width / 2;
+        const hoopCenter = h.left + h.width / 2;
+        
+        // Slightly wider hit box for better UX
+        const isHit = (Math.abs(ballCenter - hoopCenter) < 55 && b.top < h.bottom + 20 && b.top > h.top - 80);
+
+        if (isHit) {
+            score++;
+            document.getElementById('score').innerText = score;
+            ball.style.opacity = '0';
+            if (score >= 3) endGame(true); else setTimeout(resetBall, 600);
+        } else {
+            lives--;
+            document.getElementById('lives').innerText = lives;
+            if (lives <= 0) endGame(false); else setTimeout(resetBall, 600);
+        }
+    }
+
+    function endGame(win) {
+        gameActive = false;
+        if (win) {
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#ffffff', '#004d40', '#ffc107'] });
+            setTimeout(() => showScreen('final-scene'), 1000);
+        } else {
+            alert("Almost! Give it one more try!");
+            resetGameForReplay();
+        }
+    }
+
+    function resetGameForReplay() {
+        score = 0;
+        lives = 5;
+        document.getElementById('score').innerText = score;
+        document.getElementById('lives').innerText = lives;
+        showScreen('game-scene');
+        gameActive = true;
+        resetBall();
+    }
+</script>
+</body>
+</html>
